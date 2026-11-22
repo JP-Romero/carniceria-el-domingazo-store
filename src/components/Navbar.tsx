@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Search, ShoppingBag, Phone, MapPin, X, User, Clock,
-  Mail, Menu, Settings, LogIn, Home, ChevronDown, LogOut, Package,
+  Mail, Menu, Settings, LogIn, Home, ChevronDown, LogOut, Package, LayoutGrid,
 } from 'lucide-react'
 import { BusinessInfo } from '../types'
 
@@ -56,6 +56,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const whatsappPhone = (business?.whatsapp_phone || '+50577082552').replace(/[^0-9]/g, '')
 
   return (
+    <>
     <header className="sticky top-0 z-40 bg-white shadow-sm">
       {/* ═══════════════ LEVEL 1: Top Info Bar ═══════════════ */}
       <div className="bg-[#8b1e1e] text-white">
@@ -507,5 +508,65 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       )}
     </header>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-slate-200 shadow-lg">
+        <div className="flex items-center justify-around py-2">
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="flex flex-col items-center justify-center gap-1 p-1 text-slate-600 hover:text-[#8b1e1e] transition-colors"
+          >
+            <Home className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Inicio</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              document.querySelector<HTMLInputElement>('input[type="text"]')?.focus()
+            }}
+            className="flex flex-col items-center justify-center gap-1 p-1 text-slate-600 hover:text-[#8b1e1e] transition-colors"
+          >
+            <Search className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Buscar</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onOpenCart}
+            className="relative flex flex-col items-center justify-center gap-1 p-1 text-slate-600 hover:text-[#8b1e1e] transition-colors"
+          >
+            <ShoppingBag className="w-5 h-5" />
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-[#8b1e1e] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                {cartCount > 99 ? '99+' : cartCount}
+              </span>
+            )}
+            <span className="text-[10px] font-medium">Carrito</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate(user ? '/profile' : '/login')}
+            className="flex flex-col items-center justify-center gap-1 p-1 text-slate-600 hover:text-[#8b1e1e] transition-colors"
+          >
+            <User className="w-5 h-5" />
+            <span className="text-[10px] font-medium">{user ? 'Perfil' : 'Ingresar'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              document.getElementById('category-section')?.scrollIntoView({ behavior: 'smooth' })
+            }}
+            className="flex flex-col items-center justify-center gap-1 p-1 text-slate-600 hover:text-[#8b1e1e] transition-colors"
+          >
+            <LayoutGrid className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Categorías</span>
+          </button>
+        </div>
+      </nav>
+    </>
   )
 }
