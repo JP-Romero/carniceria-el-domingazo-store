@@ -2,12 +2,13 @@ import React, { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Search, ShoppingBag, Phone, MapPin, X, User, Clock,
-  Mail, Menu, Settings, LogIn, Home,
+  Mail, Menu, Settings, LogIn, Home, ChevronDown, LogOut, Package,
 } from 'lucide-react'
 import { BusinessInfo } from '../types'
 
 interface NavbarProps {
   business: BusinessInfo | null
+  user: { id: string; email: string } | null
   searchQuery: string
   setSearchQuery: (query: string) => void
   currency: 'NIO' | 'USD'
@@ -21,6 +22,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({
   business,
+  user,
   searchQuery,
   setSearchQuery,
   currency,
@@ -33,13 +35,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchFocused, setSearchFocused] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
+  const userMenuRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
         setSearchFocused(false)
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -230,15 +237,69 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               </div>
 
-              {/* Login Button (Desktop) */}
-              <button
-                type="button"
-                onClick={() => navigate('/login')}
-                className="hidden lg:flex items-center gap-1.5 px-3 py-2 text-slate-700 hover:text-[#8b1e1e] hover:bg-red-50 rounded-lg text-xs font-semibold transition-all"
-              >
-                <User className="w-4 h-4" />
-                <span>Ingresar</span>
-              </button>
+              {/* User Menu / Login (Desktop) */}
+              {user ? (
+                <div ref={userMenuRef} className="relative inline-block">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setUserMenuOpen(!userMenuOpen)
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 hover:text-slate-900 transition-all"
+                  >
+                    <User className="w-4 h-4" />
+                    <span className="text-xs font-medium hidden xl:inline">{user.email?.split('@')[0]}</span>
+                    <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                  </button>
+                  {userMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-44 bg-white rounded-xl shadow-xl border border-slate-100 p-1.5 z-50">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUserMenuOpen(false)
+                          navigate('/profile')
+                        }}
+                        className="w-full flex items-center gap-2 py-2 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
+                      >
+                        <User className="w-4 h-4 text-[#8b1e1e]" />
+                        Mi perfil
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUserMenuOpen(false)
+                          navigate('/carrito')
+                        }}
+                        className="w-full flex items-center gap-2 py-2 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
+                      >
+                        <Package className="w-4 h-4 text-[#8b1e1e]" />
+                        Mi carrito
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUserMenuOpen(false)
+                          navigate('/login')
+                        }}
+                        className="w-full flex items-center gap-2 py-2 px-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Cerrar sesión
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => navigate('/login')}
+                  className="hidden lg:flex items-center gap-1.5 px-3 py-2 text-slate-700 hover:text-[#8b1e1e] hover:bg-red-50 rounded-lg text-xs font-semibold transition-all"
+                >
+                  <User className="w-4 h-4" />
+                  <span>Ingresar</span>
+                </button>
+              )}
 
               {/* Admin Button */}
               {onOpenAdmin && (
@@ -361,16 +422,29 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <ShoppingBag className="w-4 h-4 text-[#8b1e1e]" />
                 Mi Carrito
               </button>
-              <button
-                onClick={() => {
-                  navigate('/login')
-                  setMobileMenuOpen(false)
-                }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-50 text-slate-700 text-sm font-medium transition-colors"
-              >
-                <LogIn className="w-4 h-4 text-[#8b1e1e]" />
-                Ingresar / Mi cuenta
-              </button>
+              {user ? (
+                <button
+                  onClick={() => {
+                    navigate('/profile')
+                    setMobileMenuOpen(false)
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-50 text-slate-700 text-sm font-medium transition-colors"
+                >
+                  <User className="w-4 h-4 text-[#8b1e1e]" />
+                  Mi Perfil
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    navigate('/login')
+                    setMobileMenuOpen(false)
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-50 text-slate-700 text-sm font-medium transition-colors"
+                >
+                  <LogIn className="w-4 h-4 text-[#8b1e1e]" />
+                  Ingresar / Mi cuenta
+                </button>
+              )}
               {onOpenAdmin && (
                 <button
                   onClick={() => {

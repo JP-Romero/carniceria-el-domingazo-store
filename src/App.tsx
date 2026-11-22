@@ -21,6 +21,8 @@ const App = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [business, setBusiness] = useState<BusinessInfo | null>(null)
+  const [user, setUser] = useState<{ id: string; email: string } | null>(null)
+  const [session, setSession] = useState<any>(null)
   const [categories, setCategories] = useState<Category[]>([])
   const [products, setProducts] = useState<Product[]>([])
 
@@ -87,6 +89,13 @@ const App = () => {
   // Load data on mount
   useEffect(() => {
     fetchStoreData()
+    // Check for existing session
+    getSession().then(session => {
+      if (session) {
+        setUser(session.user)
+        setSession(session)
+      }
+    })
   }, [])
 
   const handleSearchQueryChange = (query: string) => {
@@ -182,6 +191,61 @@ const App = () => {
   const closeCart = () => setIsCartOpen(false)
   const openAdmin = () => setIsAdminOpen(true)
 
+  // ---- Auth Methods ----
+  const getSession = async () => {
+    try {
+      const { data, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError) return null
+      if (!data.session) return null
+      setSession(data.session)
+      setUser(data.session.user)
+      return data.session
+    } catch {
+      return null
+    }
+  }
+
+  const signIn = async (email: string, password: string) => {
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+    if (signInError) throw signInError
+    if (data.session) {
+      setSession(data.session)
+      setUser(data.session.user)
+    }
+  }
+
+  const signUp = async (email: string, password: string, name?: string, phone?: string) => {
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name,
+          phone,
+        },
+      },
+    })
+    if (signUpError) throw signUpError
+    if (data.session) {
+      setSession(data.session)
+      setUser(data.session.user)
+    }
+  }
+
+  const signOut = async () => {
+    await supabase.auth.signOut()
+    setUser(null)
+    setSession(null)
+  }
+
+  const resetPassword = async (email: string) => {
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email)
+    if (resetError) throw resetError
+  }
+
   const store: StoreContextValue = {
     loading,
     error,
@@ -207,6 +271,16 @@ const App = () => {
     setOnlyDiscounts,
     categoryCounts,
     discountCount,
+    // --- Auth ---
+    user,
+    setUser,
+    session,
+    setSession,
+    getSession,
+    signIn,
+    signUp,
+    signOut,
+    resetPassword,
     addToCart: handleAddToCart,
     updateQuantity: handleUpdateQuantity,
     clearCart: handleClearCart,
@@ -228,6 +302,7 @@ const App = () => {
       <div className="min-h-screen bg-[#f8fafc] flex flex-col font-sans selection:bg-[#8b1e1e] selection:text-white">
         <Navbar
           business={business}
+          user={user}
           searchQuery={searchQuery}
           setSearchQuery={handleSearchQueryChange}
           currency={currency}

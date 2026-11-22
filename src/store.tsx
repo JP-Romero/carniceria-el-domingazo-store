@@ -1,6 +1,15 @@
-import { createContext, useContext } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 import { BusinessInfo, Category, Product, CartItem, ProductVariantOption } from './types'
 import { SortOption, PriceFilter } from './components/SortBar'
+import { supabase } from './lib/supabase'
+
+export interface UserProfile {
+  id: string
+  email: string | null
+  name: string | null
+  phone: string | null
+  created_at: string
+}
 
 export interface StoreContextValue {
   loading: boolean
@@ -35,9 +44,21 @@ export interface StoreContextValue {
   categoryCounts: Record<string, number>
   discountCount: number
 
+  // --- Auth ---
+  user: { id: string; email: string } | null
+  setUser: (u: { id: string; email: string } | null) => void
+  session: any
+  setSession: (s: any) => void
+  getSession: () => Promise<any>
+  signIn: (email: string, password: string) => Promise<void>
+  signUp: (email: string, password: string, name?: string, phone?: string) => Promise<void>
+  signOut: () => Promise<void>
+  resetPassword: (email: string) => Promise<void>
+
   addToCart: (product: Product, variant?: ProductVariantOption | null, quantity?: number) => void
   updateQuantity: (productId: string, quantity: number, variantName?: string | null) => void
   clearCart: () => void
+
   getCartQuantity: (productId: string) => number
 
   openCart: () => void
@@ -47,7 +68,6 @@ export interface StoreContextValue {
 }
 
 export const StoreContext = createContext<StoreContextValue | null>(null)
-
 export const StoreProvider = StoreContext.Provider
 
 export function useStore(): StoreContextValue {
