@@ -13,6 +13,7 @@ import HomePage from './pages/HomePage'
 import CategoryPage from './pages/CategoryPage'
 import ProductPage from './pages/ProductPage'
 import CartPage from './pages/CartPage'
+import ProfilePage from './pages/ProfilePage'
 import LoginPage from './pages/LoginPage'
 
 const CART_STORAGE_KEY = 'carniceria_domingazo_cart_v1'
@@ -320,6 +321,7 @@ const App = () => {
             <Route path="/categoria/:slug" element={<CategoryPage />} />
             <Route path="/producto/:id" element={<ProductPage />} />
             <Route path="/carrito" element={<CartPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/404" element={<Navigate to="/" replace />} />
             <Route element={<Navigate to="/" replace />} />
