@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   Search, ShoppingBag, Phone, MapPin, X, User, Clock,
-  Mail, Menu, Settings, LogIn
+  Mail, Menu, Settings, LogIn, Home,
 } from 'lucide-react'
 import { BusinessInfo } from '../types'
 
@@ -33,6 +34,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchFocused, setSearchFocused] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -112,7 +114,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             {/* Logo */}
-            <div className="flex items-center gap-2.5 shrink-0">
+            <Link to="/" className="flex items-center gap-2.5 shrink-0">
               <img
                 src={business?.logo_url || '/logo-domingazo.jpg'}
                 alt={business?.name || 'Carniceria El Domingazo'}
@@ -126,7 +128,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   Carniceria & Supermercado
                 </p>
               </div>
-            </div>
+            </Link>
 
             {/* Search Bar - Center, Large (Desktop) */}
             <div className="hidden md:flex flex-1 max-w-2xl mx-4 lg:mx-8" ref={searchRef}>
@@ -192,6 +194,16 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Right Actions */}
             <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 ml-auto">
+              {/* Home Link */}
+              <button
+                type="button"
+                onClick={() => navigate('/')}
+                className="hidden lg:flex items-center gap-1.5 px-3 py-2 text-slate-700 hover:text-[#8b1e1e] hover:bg-red-50 rounded-lg text-xs font-semibold transition-all"
+              >
+                <Home className="w-4 h-4" />
+                <span>Inicio</span>
+              </button>
+
               {/* Currency Toggle */}
               <div className="hidden sm:flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
                 <button
@@ -221,6 +233,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* Login Button (Desktop) */}
               <button
                 type="button"
+                onClick={() => navigate('/login')}
                 className="hidden lg:flex items-center gap-1.5 px-3 py-2 text-slate-700 hover:text-[#8b1e1e] hover:bg-red-50 rounded-lg text-xs font-semibold transition-all"
               >
                 <User className="w-4 h-4" />
@@ -328,7 +341,33 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             <div className="p-3 space-y-1">
-              <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-50 text-slate-700 text-sm font-medium transition-colors">
+              <button
+                onClick={() => {
+                  navigate('/')
+                  setMobileMenuOpen(false)
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-50 text-slate-700 text-sm font-medium transition-colors"
+              >
+                <Home className="w-4 h-4 text-[#8b1e1e]" />
+                Inicio / Catálogo
+              </button>
+              <button
+                onClick={() => {
+                  navigate('/carrito')
+                  setMobileMenuOpen(false)
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-50 text-slate-700 text-sm font-medium transition-colors"
+              >
+                <ShoppingBag className="w-4 h-4 text-[#8b1e1e]" />
+                Mi Carrito
+              </button>
+              <button
+                onClick={() => {
+                  navigate('/login')
+                  setMobileMenuOpen(false)
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-50 text-slate-700 text-sm font-medium transition-colors"
+              >
                 <LogIn className="w-4 h-4 text-[#8b1e1e]" />
                 Ingresar / Mi cuenta
               </button>
