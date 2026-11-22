@@ -8,6 +8,7 @@ interface CategoryNavProps {
   onSelectCategory: (id: string) => void
   totalProductsCount: number
   categoryCounts: Record<string, number>
+  discountCount?: number
 }
 
 export const CategoryNav: React.FC<CategoryNavProps> = ({
@@ -16,6 +17,7 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
   onSelectCategory,
   totalProductsCount,
   categoryCounts,
+  discountCount = 0,
 }) => {
   // Filter categories that have products
   const visibleCategories = categories.filter((cat) => (categoryCounts[cat.id] || 0) > 0)
@@ -29,6 +31,7 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
           onSelectCategory={onSelectCategory}
           totalProductsCount={totalProductsCount}
           categoryCounts={categoryCounts}
+          discountCount={discountCount}
         />
       </div>
     </div>

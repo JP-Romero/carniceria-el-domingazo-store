@@ -7,6 +7,7 @@ import { CartDrawer } from './components/CartDrawer'
 import { Footer } from './components/Footer'
 import { ProductDetailModal } from './components/ProductDetailModal'
 import { StoreAdminModal } from './components/StoreAdminModal'
+import { SortBar, SortOption, PriceFilter } from './components/SortBar'
 import { supabase } from './lib/supabase'
 import { BusinessInfo, Category, Product, CartItem, ProductVariantOption } from './types'
 import { ShoppingBag, AlertCircle, RefreshCw, Sparkles, Search, MessageSquare } from 'lucide-react'
@@ -39,6 +40,11 @@ export default function App() {
   // Product Detail Modal State
   const [selectedProductForDetail, setSelectedProductForDetail] = useState<Product | null>(null)
   const [isAdminOpen, setIsAdminOpen] = useState(false)
+
+  // Sort & Filter State
+  const [sortBy, setSortBy] = useState<SortOption>('featured')
+  const [priceFilter, setPriceFilter] = useState<PriceFilter>('all')
+  const [onlyDiscounts, setOnlyDiscounts] = useState(false)
 
   // Save Cart
   useEffect(() => {
@@ -94,26 +100,88 @@ export default function App() {
     return counts
   }, [products])
 
-  // Filtered Products
-  const filteredProducts = useMemo(() => {
-    return products.filter((p) => {
-      // Category filter
-      if (selectedCategory !== 'all' && p.category_id !== selectedCategory) {
-        return false
-      }
+  // Discount count
+  const discountCount = useMemo(() => {
+    return products.filter((p) => p.discount_percentage && p.discount_percentage > 0).length
+  }, [products])
 
-      // Search query filter
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase().trim()
+  // Filtered & Sorted Products
+  const filteredProducts = useMemo(() => {
+    let result = [...products]
+
+    // Category filter
+    if (selectedCategory !== 'all' && selectedCategory !== 'offers' && result[0]?.category_id !== selectedCategory) {
+      result = result.filter((p) => p.category_id === selectedCategory)
+    }
+
+    // Offers filter (virtual category)
+    if (selectedCategory === 'offers') {
+      result = result.filter((p) => p.discount_percentage && p.discount_percentage > 0)
+    }
+
+    // Only discounts toggle
+    if (onlyDiscounts) {
+      result = result.filter((p) => p.discount_percentage && p.discount_percentage > 0)
+    }
+
+    // Price filter
+    if (priceFilter !== 'all') {
+      result = result.filter((p) => {
+        const price = p.price_nio || 0
+        switch (priceFilter) {
+          case 'under_50': return price < 50
+          case '50_to_100': return price >= 50 && price <= 100
+          case '100_to_200': return price > 100 && price <= 200
+          case 'over_200': return price > 200
+          default: return true
+        }
+      })
+    }
+
+    // Search query filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim()
+      result = result.filter((p) => {
         const matchesName = p.name.toLowerCase().includes(query)
         const matchesSku = p.sku ? p.sku.toLowerCase().includes(query) : false
         const matchesBarcode = p.barcode ? p.barcode.toLowerCase().includes(query) : false
         return matchesName || matchesSku || matchesBarcode
-      }
+      })
+    }
 
-      return true
-    })
-  }, [products, selectedCategory, searchQuery])
+    // Sorting
+    switch (sortBy) {
+      case 'price_asc':
+        result.sort((a, b) => (a.price_nio || 0) - (b.price_nio || 0))
+        break
+      case 'price_desc':
+        result.sort((a, b) => (b.price_nio || 0) - (a.price_nio || 0))
+        break
+      case 'name_asc':
+        result.sort((a, b) => a.name.localeCompare(b.name, 'es'))
+        break
+      case 'name_desc':
+        result.sort((a, b) => b.name.localeCompare(a.name, 'es'))
+        break
+      case 'discount':
+        result.sort((a, b) => (b.discount_percentage || 0) - (a.discount_percentage || 0))
+        break
+      case 'stock':
+        result.sort((a, b) => (b.stock || 0) - (a.stock || 0))
+        break
+      case 'featured':
+      default:
+        // Keep original order, but prioritize discounted items
+        result.sort((a, b) => {
+          const aDiscount = a.discount_percentage && a.discount_percentage > 0 ? 1 : 0
+          const bDiscount = b.discount_percentage && b.discount_percentage > 0 ? 1 : 0
+          return bDiscount - aDiscount
+        })
+        break
+    }
+
+    return result
+  }, [products, selectedCategory, searchQuery, sortBy, priceFilter, onlyDiscounts])
 
   // Cart Calculations
   const cartCount = useMemo(() => {
@@ -235,18 +303,21 @@ export default function App() {
               onSelectCategory={setSelectedCategory}
               totalProductsCount={products.length}
               categoryCounts={categoryCounts}
+              discountCount={discountCount}
             />
 
             {/* Catalog Grid Section */}
             <section className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
               {/* Section Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                 <div>
                   <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                     {searchQuery
                       ? `Resultados para "${searchQuery}"`
                       : selectedCategory === 'all'
                       ? 'Todos los Productos y Cortes'
+                      : selectedCategory === 'offers'
+                      ? '🔥 Ofertas y Descuentos'
                       : categories.find((c) => c.id === selectedCategory)?.name || 'Productos'}
                   </h2>
                   <p className="text-xs text-slate-500 mt-0.5">
@@ -265,6 +336,18 @@ export default function App() {
                 )}
               </div>
 
+              {/* Sort & Filter Bar */}
+              <SortBar
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+                priceFilter={priceFilter}
+                onPriceFilterChange={setPriceFilter}
+                onlyDiscounts={onlyDiscounts}
+                onToggleDiscounts={() => setOnlyDiscounts(!onlyDiscounts)}
+                discountCount={discountCount}
+                totalCount={filteredProducts.length}
+              />
+
               {/* Products Grid */}
               {filteredProducts.length === 0 ? (
                 <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-lg mx-auto">
@@ -282,6 +365,9 @@ export default function App() {
                     onClick={() => {
                       setSearchQuery('')
                       setSelectedCategory('all')
+                      setOnlyDiscounts(false)
+                      setPriceFilter('all')
+                      setSortBy('featured')
                     }}
                     className="px-4 py-2 bg-[#8b1e1e] text-white text-xs font-bold rounded-xl shadow-xs"
                   >
@@ -289,7 +375,7 @@ export default function App() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
                   {filteredProducts.map((product) => (
                     <ProductCard
                       key={product.id}

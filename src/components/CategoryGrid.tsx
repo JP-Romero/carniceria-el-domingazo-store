@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 import { Category } from '../types'
-import { LayoutGrid } from 'lucide-react'
+import { LayoutGrid, Tag, TrendingDown } from 'lucide-react'
 
 interface CategoryGridProps {
   categories: Category[]
@@ -8,6 +8,7 @@ interface CategoryGridProps {
   onSelectCategory: (id: string) => void
   totalProductsCount: number
   categoryCounts: Record<string, number>
+  discountCount?: number
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -80,13 +81,14 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
   onSelectCategory,
   totalProductsCount,
   categoryCounts,
+  discountCount = 0,
 }) => {
   // Filter categories that have products
   const visibleCategories = useMemo(() => {
     return categories.filter((cat) => (categoryCounts[cat.id] || 0) > 0)
   }, [categories, categoryCounts])
 
-  if (visibleCategories.length === 0) return null
+  if (visibleCategories.length === 0 && discountCount === 0) return null
 
   return (
     <section className="max-w-7xl mx-auto px-4 pt-6 pb-4">
@@ -95,7 +97,7 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
         <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
           Nuestras Categorías
         </h2>
-        {selectedCategory !== 'all' && (
+        {selectedCategory !== 'all' && selectedCategory !== 'offers' && (
           <button
             type="button"
             onClick={() => onSelectCategory('all')}
@@ -136,6 +138,37 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
             </span>
           </div>
         </button>
+
+        {/* Ofertas Card - Only show if there are discounted products */}
+        {discountCount > 0 && (
+          <button
+            type="button"
+            onClick={() => onSelectCategory('offers')}
+            className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all cursor-pointer group ${
+              selectedCategory === 'offers'
+                ? 'border-red-600 bg-red-600 text-white shadow-md'
+                : 'border-red-100 bg-red-50/50 text-red-700 hover:border-red-300 hover:shadow-md hover:-translate-y-0.5'
+            }`}
+          >
+            <div
+              className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-xl sm:text-2xl overflow-hidden transition-all ${
+                selectedCategory === 'offers'
+                  ? 'bg-white/20'
+                  : 'bg-red-100 group-hover:bg-red-200'
+              }`}
+            >
+              <TrendingDown className={`w-6 h-6 sm:w-7 sm:h-7 ${selectedCategory === 'offers' ? 'text-white' : 'text-red-600'}`} />
+            </div>
+            <div className="text-center min-w-0">
+              <span className={`block text-[10px] sm:text-xs font-bold leading-tight truncate max-w-full ${selectedCategory === 'offers' ? 'text-white' : 'text-red-700'}`}>
+                🔥 Ofertas
+              </span>
+              <span className={`block text-[9px] sm:text-[10px] font-semibold ${selectedCategory === 'offers' ? 'text-white/80' : 'text-red-400'}`}>
+                {discountCount} prod.
+              </span>
+            </div>
+          </button>
+        )}
 
         {/* Category Cards */}
         {visibleCategories.map((cat) => {
