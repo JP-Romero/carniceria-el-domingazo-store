@@ -23,7 +23,7 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
   const visibleCategories = categories.filter((cat) => (categoryCounts[cat.id] || 0) > 0)
 
   return (
-    <div className="bg-white border-b border-slate-200 shadow-2xs sticky top-[73px] sm:top-[85px] z-30">
+    <div className="bg-white border-b border-slate-200 shadow-2xs sticky top-[104px] sm:top-[116px] z-30">
       <div className="max-w-7xl mx-auto px-4 py-2.5">
         <CategoryGrid
           categories={visibleCategories}
