@@ -1,12 +1,13 @@
 import React from 'react'
-import { MapPin, Phone, Clock, ShieldCheck, Heart } from 'lucide-react'
+import { MapPin, Phone, Clock, ShieldCheck, Heart, Settings } from 'lucide-react'
 import { BusinessInfo } from '../types'
 
 interface FooterProps {
   business: BusinessInfo | null
+  onOpenAdmin?: () => void
 }
 
-export const Footer: React.FC<FooterProps> = ({ business }) => {
+export const Footer: React.FC<FooterProps> = ({ business, onOpenAdmin }) => {
   return (
     <footer className="bg-slate-900 text-slate-300 mt-12 border-t-4 border-[#8b1e1e]">
       <div className="max-w-7xl mx-auto px-4 py-10 sm:py-14">
@@ -88,10 +89,22 @@ export const Footer: React.FC<FooterProps> = ({ business }) => {
           <div>
             © {new Date().getFullYear()} Carnicería El Domingazo. Todos los derechos reservados.
           </div>
-          <div className="flex items-center gap-1.5">
-            <span>Tienda en línea impulsada por</span>
-            <span className="font-bold text-white">MI PYME</span>
-            <span>🚀</span>
+          <div className="flex items-center gap-4">
+            {onOpenAdmin && (
+              <button
+                type="button"
+                onClick={onOpenAdmin}
+                className="hover:text-slate-300 flex items-center gap-1 transition-colors text-slate-400 font-medium"
+              >
+                <Settings className="w-3 h-3 text-[#facc15]" />
+                <span>Gestión de Catálogo</span>
+              </button>
+            )}
+            <div className="flex items-center gap-1.5">
+              <span>Tienda en línea impulsada por</span>
+              <span className="font-bold text-white">MI PYME</span>
+              <span>🚀</span>
+            </div>
           </div>
         </div>
       </div>

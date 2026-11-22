@@ -1,5 +1,5 @@
 import React from 'react'
-import { Search, ShoppingBag, Phone, MapPin, X } from 'lucide-react'
+import { Search, ShoppingBag, Phone, MapPin, X, Settings } from 'lucide-react'
 import { BusinessInfo } from '../types'
 
 interface NavbarProps {
@@ -12,6 +12,7 @@ interface NavbarProps {
   cartTotalNio: number
   cartTotalUsd: number
   onOpenCart: () => void
+  onOpenAdmin?: () => void
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -24,6 +25,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   cartTotalNio,
   cartTotalUsd,
   onOpenCart,
+  onOpenAdmin,
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-xs">
@@ -127,6 +129,19 @@ export const Navbar: React.FC<NavbarProps> = ({
                 $ USD
               </button>
             </div>
+
+            {/* Admin Quick Access */}
+            {onOpenAdmin && (
+              <button
+                type="button"
+                onClick={onOpenAdmin}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all shadow-2xs"
+                title="Configuración de tienda, productos y precios"
+              >
+                <Settings className="w-4 h-4 text-[#8b1e1e]" />
+                <span className="hidden md:inline">Administrar</span>
+              </button>
+            )}
 
             {/* Cart Button */}
             <button

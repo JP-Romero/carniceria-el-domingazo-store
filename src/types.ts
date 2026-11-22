@@ -35,10 +35,14 @@ export interface Product {
   id: string
   category_id?: string | null
   name: string
+  brand?: string | null
   barcode?: string | null
   sku?: string | null
   price_nio: number
+  original_price_nio?: number | null
   price_usd?: number | null
+  original_price_usd?: number | null
+  discount_percentage?: number | null
   unit?: string | null
   image_url?: string | null
   stock?: number | null

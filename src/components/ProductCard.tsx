@@ -9,6 +9,7 @@ interface ProductCardProps {
   cartQuantity: number
   onAddToCart: (product: Product, selectedVariant?: ProductVariantOption | null) => void
   onUpdateQuantity: (productId: string, quantity: number, variantName?: string | null) => void
+  onOpenDetail?: (product: Product) => void
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -18,6 +19,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   cartQuantity,
   onAddToCart,
   onUpdateQuantity,
+  onOpenDetail,
 }) => {
   // Detect variants if available
   const hasVariants = product.variants && product.variants.length > 0 && product.variants[0].options?.length > 0
@@ -73,41 +75,69 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           )}
         </div>
 
+        {/* Discount Badge Overlay */}
+        {product.discount_percentage && product.discount_percentage > 0 && (
+          <div className="absolute top-2 left-2 z-10">
+            <span className="inline-flex items-center px-2 py-1 rounded-md bg-red-600 text-white text-[10px] font-black shadow-sm">
+              -{product.discount_percentage}%
+            </span>
+          </div>
+        )}
+
         {/* Product Image / Illustration Placeholder */}
         <div className="relative w-full aspect-4/3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden mb-3 group-hover:bg-slate-100/60 transition-colors">
-          {product.image_url ? (
-            <img
-              src={product.image_url}
-              alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              loading="lazy"
-            />
-          ) : (
-            <div className="flex flex-col items-center justify-center text-slate-300 p-4 text-center">
-              <span className="text-3xl sm:text-4xl mb-1 select-none">
-                {product.name.toLowerCase().includes('pollo')
-                  ? '🍗'
-                  : product.name.toLowerCase().includes('cerdo') || product.name.toLowerCase().includes('posta')
-                  ? '🥓'
-                  : product.name.toLowerCase().includes('res') || product.name.toLowerCase().includes('lomo')
-                  ? '🥩'
-                  : product.name.toLowerCase().includes('chorizo') || product.name.toLowerCase().includes('embutido')
-                  ? '🌭'
-                  : product.name.toLowerCase().includes('queso') || product.name.toLowerCase().includes('crema')
-                  ? '🧀'
-                  : '🛒'}
-              </span>
-              <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">
-                El Domingazo
-              </span>
-            </div>
-          )}
+          <button
+            type="button"
+            onClick={() => onOpenDetail?.(product)}
+            className="absolute inset-0 flex items-center justify-center focus:outline-none"
+            aria-label={`Ver detalles de ${product.name}`}
+          >
+            {product.image_url ? (
+              <img
+                src={product.image_url}
+                alt={product.name}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                loading="lazy"
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center text-slate-300 p-4 text-center">
+                <span className="text-3xl sm:text-4xl mb-1 select-none">
+                  {product.name.toLowerCase().includes('pollo')
+                    ? '🍗'
+                    : product.name.toLowerCase().includes('cerdo') || product.name.toLowerCase().includes('posta')
+                    ? '🥓'
+                    : product.name.toLowerCase().includes('res') || product.name.toLowerCase().includes('lomo')
+                    ? '🥩'
+                    : product.name.toLowerCase().includes('chorizo') || product.name.toLowerCase().includes('embutido')
+                    ? '🌭'
+                    : product.name.toLowerCase().includes('queso') || product.name.toLowerCase().includes('crema')
+                    ? '🧀'
+                    : '🛒'}
+                </span>
+                <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">
+                  El Domingazo
+                </span>
+              </div>
+            )}
+          </button>
         </div>
 
+        {/* Product Brand */}
+        {product.brand && (
+          <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-0.5">
+            {product.brand}
+          </p>
+        )}
+
         {/* Product Title */}
-        <h3 className="font-bold text-slate-900 text-sm sm:text-base leading-snug line-clamp-2 min-h-[2.5rem] mb-1.5" title={product.name}>
+        <button
+          type="button"
+          onClick={() => onOpenDetail?.(product)}
+          className="font-bold text-slate-900 text-sm sm:text-base leading-snug line-clamp-2 min-h-[2.5rem] mb-1.5 text-left hover:text-[#8b1e1e] transition-colors cursor-pointer w-full"
+          title={product.name}
+        >
           {product.name}
-        </h3>
+        </button>
 
         {/* Variants Selector if multiple options exist */}
         {normalizedOptions.length > 1 && (
@@ -142,6 +172,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       <div className="pt-3 border-t border-slate-100 mt-2">
         <div className="flex items-baseline justify-between gap-1 mb-2.5">
           <div>
+            {/* Original price with strikethrough if discounted */}
+            {product.discount_percentage && product.discount_percentage > 0 && (() => {
+              const origPriceNio = product.original_price_nio ?? product.price_nio
+              const origPriceUsd = product.original_price_usd ?? product.price_usd ?? (exchangeRate > 0 ? origPriceNio / exchangeRate : 0)
+              const origDisplay = isNio ? origPriceNio : origPriceUsd
+              return (
+                <div className="text-[11px] text-slate-400 line-through font-medium mb-0.5">
+                  {primarySymbol} {origDisplay.toLocaleString(isNio ? 'es-NI' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  <span className="text-[9px] ml-1">/{unitLabel}</span>
+                </div>
+              )
+            })()}
             <div className="text-base sm:text-lg font-black text-[#8b1e1e] leading-tight">
               {primarySymbol} {primaryPrice.toLocaleString(isNio ? 'es-NI' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               <span className="text-xs font-normal text-slate-500 ml-1">/{unitLabel}</span>

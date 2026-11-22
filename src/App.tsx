@@ -5,6 +5,8 @@ import { CategoryNav } from './components/CategoryNav'
 import { ProductCard } from './components/ProductCard'
 import { CartDrawer } from './components/CartDrawer'
 import { Footer } from './components/Footer'
+import { ProductDetailModal } from './components/ProductDetailModal'
+import { StoreAdminModal } from './components/StoreAdminModal'
 import { supabase } from './lib/supabase'
 import { BusinessInfo, Category, Product, CartItem, ProductVariantOption } from './types'
 import { ShoppingBag, AlertCircle, RefreshCw, Sparkles, Search, MessageSquare } from 'lucide-react'
@@ -33,6 +35,10 @@ export default function App() {
     }
   })
   const [isCartOpen, setIsCartOpen] = useState(false)
+
+  // Product Detail Modal State
+  const [selectedProductForDetail, setSelectedProductForDetail] = useState<Product | null>(null)
+  const [isAdminOpen, setIsAdminOpen] = useState(false)
 
   // Save Cart
   useEffect(() => {
@@ -190,6 +196,7 @@ export default function App() {
         cartTotalNio={cartTotalNio}
         cartTotalUsd={cartTotalUsd}
         onOpenCart={() => setIsCartOpen(true)}
+        onOpenAdmin={() => setIsAdminOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -219,7 +226,7 @@ export default function App() {
         ) : (
           <>
             {/* Promo Hero Carousel & Value Props (shown when not searching) */}
-            {!searchQuery && <HeroBanner />}
+            {!searchQuery && <div className="hidden sm:block"><HeroBanner /></div>}
 
             {/* Department Categories Nav Bar */}
             <CategoryNav
@@ -292,6 +299,7 @@ export default function App() {
                       cartQuantity={getProductCartQuantity(product.id)}
                       onAddToCart={handleAddToCart}
                       onUpdateQuantity={handleUpdateQuantity}
+                      onOpenDetail={setSelectedProductForDetail}
                     />
                   ))}
                 </div>
@@ -340,8 +348,29 @@ export default function App() {
         onClearCart={handleClearCart}
       />
 
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        product={selectedProductForDetail}
+        currency={currency}
+        exchangeRate={exchangeRate}
+        cartQuantity={selectedProductForDetail ? getProductCartQuantity(selectedProductForDetail.id) : 0}
+        onClose={() => setSelectedProductForDetail(null)}
+        onAddToCart={handleAddToCart}
+        onUpdateQuantity={handleUpdateQuantity}
+      />
+
+      {/* Store Admin & Product Manager Modal */}
+      <StoreAdminModal
+        isOpen={isAdminOpen}
+        onClose={() => setIsAdminOpen(false)}
+        business={business}
+        categories={categories}
+        products={products}
+        onReload={loadStoreData}
+      />
+
       {/* Footer */}
-      <Footer business={business} />
+      <Footer business={business} onOpenAdmin={() => setIsAdminOpen(true)} />
     </div>
   )
 }
